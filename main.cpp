@@ -4,12 +4,12 @@
 #include <iostream>
 #include <cmath>
 
-int height = 700, width = 1280;
+int height = 700, width = 700;
 float T = 1;
 float t = T*0.016f;
 float restituition = 1;
 bool solid_corner = false;
-
+float factor = 0.1;
 void update(sf::RenderWindow &window);   
 
 struct Particle{
@@ -69,6 +69,13 @@ int main(){
                 if(event.key.code == sf::Keyboard::D){
                     solid_corner = false;
                     std::cout<<"NOT SOLID"<<std::endl;
+                }
+                if(event.key.code == sf::Keyboard::W){
+                    factor+=0.05;
+                    std::cout<<factor<<std::endl;
+                }else if(event.key.code == sf::Keyboard::E){
+                    factor-=0.05;
+                    std::cout<<factor<<std::endl;
                 }
             }
 
@@ -262,8 +269,8 @@ void rule(std::vector<Particle> &g1, std::vector<Particle> &g2, float G, float m
                 fy += F*dy;     
             }
             
-            p1.x_v = (p1.x_v + fx)*0.5;
-            p1.y_v = (p1.y_v + fy)*0.5;
+            p1.x_v = (p1.x_v+fx)*factor ;
+            p1.y_v = (p1.y_v+fy)*factor ;
             p1.x += p1.x_v;
             p1.y += p1.y_v;
 
