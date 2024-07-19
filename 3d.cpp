@@ -5,15 +5,19 @@
 #include <vector>
 
 
-const int width = 700;
-const int height = 700; 
+const int width = 1280;
+const int height = 720; 
 
-const int number_of_colors = 5;
-const int group_size = 200;
+const int number_of_colors = 5;  //Here we change the number of species 
+const int group_size = 200; // Here we have the total of particles per species
+
+
 const int number_of_particles = number_of_colors * group_size;
-const int number_of_dimensions = 2;
-float rMax = 80;
+float rMax = 0.50;
 const float particleSize = 2;
+float scaling = 0.800001;
+float minimumSize = 1;
+float boxDistance = 0;
 
 float dt = 0.001;
 const float friction_half_life = 0.040;
@@ -25,6 +29,8 @@ std::vector<std::vector<float>> forces;
 std::vector<sf::Color> allColors;
 std::vector<float> positionsX;
 std::vector<float> positionsY;
+std::vector<float> positionsZ;
+std::vector<float> velocitiesZ;
 std::vector<float> velocitiesX;
 std::vector<float> velocitiesY;
 std::vector<sf::CircleShape> allCircles;
@@ -35,8 +41,9 @@ void start_containers(){
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> c(0,255);
-    std::uniform_real_distribution<> x(0, width);
-    std::uniform_real_distribution<> y(0,height);
+    std::uniform_real_distribution<> x(-2, 2);
+    std::uniform_real_distribution<> y(-2, 2);
+    std::uniform_real_distribution<> z(boxDistance, 2);
     std::uniform_real_distribution<> value(-1,1);
 
         
@@ -58,10 +65,13 @@ void start_containers(){
             //particles positions and velocities:
             float xPosition = x(gen);
             float yPosition = y(gen);
+            float zPosition = z(gen);
             positionsX.push_back(xPosition);
             positionsY.push_back(yPosition);
+            positionsZ.push_back(zPosition);
             velocitiesY.push_back(0);
             velocitiesX.push_back(0);
+            velocitiesZ.push_back(0);
 
             //circles positions and color:
             sf::CircleShape circle(particleSize);
@@ -109,58 +119,71 @@ void checkCorner(){
     for(int i = 0; i < number_of_particles; i++){
         float xPosition = positionsX[i];
         float yPosition = positionsY[i];
-        
-        
+        float zPosition = positionsZ[i];
 
-        if(xPosition < 0 || xPosition > width) velocitiesX[i] *=-1;
-        if(yPosition < 0 || yPosition > height) velocitiesY[i] *=-1;
+        if(xPosition < -2) {velocitiesX[i] *= -1; positionsX[i] = -2;}else if(xPosition > 2){velocitiesX[i] *= -1; positionsX[i] = 2;}
+        if(yPosition < -2) {velocitiesY[i] *= -1; positionsY[i] = -2;}else if(yPosition > 2){velocitiesY[i] *= -1; positionsY[i] = 2;}
+        if(zPosition < boxDistance) {velocitiesZ[i] *= -1; positionsZ[i] = boxDistance;}else if(zPosition > 2){velocitiesZ[i] *= -1; positionsZ[i] = 2;}
     }
 }
+
 
 void updateParticles();
 void updateParticles(){
     
     //updating velocities:
     checkCorner();
+
+    allCircles.clear();
+
     for(int i = 0; i < number_of_particles; i++){
         float totalForceX = 0;
         float totalForceY = 0;
+        float totalForceZ = 0;
         for(int j = 0; j < number_of_particles; j++){
             if(i == j) continue;
             float rx = positionsX[j] - positionsX[i];   
             float ry = positionsY[j] - positionsY[i];
-            float r = sqrt(rx*rx + ry*ry);
-            //std::cout<<r<<std::endl;
+            float rz = positionsZ[j] - positionsZ[i];
+            float r = sqrt(rx*rx + ry*ry + rz*rz);
             if(r > 0 && r < rMax){
                 float f = force(r/rMax,forces[i % number_of_colors][j % number_of_colors]);
-               //std::cout<<f<<std::endl;
                 totalForceX += rx/r * f;
                 totalForceY += ry/r * f;
+                totalForceZ += rz/r * f;
             }
         }
 
         totalForceX *= rMax * forceFactor;
         totalForceY *= rMax * forceFactor;
+        totalForceZ *= rMax * forceFactor;
 
         velocitiesX[i] *= frictionFactor;
         velocitiesY[i] *= frictionFactor;
-
-        //std::cout<<velocitiesX[i]<<std::endl;
+        velocitiesZ[i] *= frictionFactor;
 
         velocitiesX[i] += totalForceX * dt;
         velocitiesY[i] += totalForceY * dt;
-
-        //std::cout<<velocitiesX[i]<<std::endl;
-
+        velocitiesZ[i] += totalForceZ * dt;
         //updating positions:
-
-        //std::cout<<positionsX[i]<<std::endl;
 
         positionsX[i] += velocitiesX[i] * dt;
         positionsY[i] += velocitiesY[i] * dt;
-        //std::cout<<positionsX[i]<<std::endl;
+        positionsZ[i] += velocitiesZ[i] * dt;
+        
+        //updating the circle 2d position:
 
-        allCircles[i].setPosition(positionsX[i], positionsY[i]);
+        float k = 1/(positionsZ[i] + 2) ;
+        float screenX = (positionsX[i] * k + 1) * 0.5 * width;
+        float screenY = (positionsY[i] * k + 1) * 0.5 * height;
+
+        //std::cout<<positionsZ[i]<<std::endl;
+        sf::CircleShape circle(scaling - scaling/2*(positionsZ[i] - boxDistance) + minimumSize);
+        circle.setPosition(screenX, screenY);
+        circle.setFillColor(allColors[i % number_of_colors]);
+        allCircles.push_back(circle);
+        //allCircles[i].setPosition(screenX, screenY);
+        //allCircles[i](1);
 
     } 
 }
@@ -182,7 +205,8 @@ int main(){
 
     start_containers();
 
-    sf::RenderWindow window(sf::VideoMode(width, height), "LIFE 2.0");
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktop, "LIFE 2.0", sf::Style::Fullscreen);
     
     while(window.isOpen()){
 
@@ -198,32 +222,40 @@ int main(){
                 
                 if(event.key.code == sf::Keyboard::P){
                     forceFactor += 0.5;
-                    std::cout<<forceFactor<<std::endl;
+                    std::cout<<"Force Facto : "<<forceFactor<<std::endl;
                 }else if(event.key.code == sf::Keyboard::O){
                     forceFactor -= 0.5;
-                    std::cout<<forceFactor<<std::endl;                    
+                    std::cout<<"Force Facto : "<<forceFactor<<std::endl;                    
                 }
                 if(event.key.code == sf::Keyboard::L){
                     dt += 0.001;
-                    std::cout<<dt<<std::endl;
+                    std::cout<<"dt : "<<dt<<std::endl;
                 }else if(event.key.code == sf::Keyboard::K){
                     if(dt - 0.001 > 0) dt -= 0.001;
-                    std::cout<<dt<<std::endl;
+                    std::cout<<"dt : "<<dt<<std::endl;
                 }
                  if(event.key.code == sf::Keyboard::M){
-                    rMax += 0.1;
-                    std::cout<<rMax<<std::endl;
+                    rMax += 0.01;
+                    std::cout<<"R MAX : "<<rMax<<std::endl;
                 }else if(event.key.code == sf::Keyboard::N){
-                    if(rMax - 0.1 > 0) rMax -= 0.1;
-                    std::cout<<rMax<<std::endl;
+                    if(rMax - 0.01 > 0) rMax -= 0.01;
+                    std::cout<<"R MAX : "<<rMax<<std::endl;
                 }
-                if(event.key.code == sf::Keyboard::H){
+                 if(event.key.code == sf::Keyboard::H){
                     beta += 0.05;
-                    std::cout<<beta<<std::endl;
+                    std::cout<<" BETA : "<<beta<<std::endl;
                 }else if(event.key.code == sf::Keyboard::G){
                     if(beta - 0.05 > 0) beta -= 0.05;
-                    std::cout<<beta<<std::endl;
+                    std::cout<<" BETA : "<<beta<<std::endl;
                 }
+                 if(event.key.code == sf::Keyboard::S){
+                    scaling += 0.2;
+                    std::cout<<"SCALING : "<<scaling<<std::endl;
+                }else if(event.key.code == sf::Keyboard::A){
+                    if(scaling - 0.2 > 0) scaling -= 0.2;
+                    std::cout<<"SCALING : "<<scaling<<std::endl;
+                }
+            
             }
 
         }
