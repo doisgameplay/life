@@ -20,4 +20,9 @@ M - makes the particles interact with each other from an bigger distance
 
 N - makes the particles interact with each other from an smaller distance
 
+1 and 2 - adjust the box size
+
+3 and 4 - adjust the y size
+
+5 and 6 - adjust the z size
 
