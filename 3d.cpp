@@ -8,18 +8,21 @@
 const int width = 1280;
 const int height = 720; 
 
-const int number_of_colors = 5;  //Here we change the number of species 
+const int number_of_colors = 4;  //Here we change the number of species 
 const int group_size = 200; // Here we have the total of particles per species
 
 
 const int number_of_particles = number_of_colors * group_size;
 float rMax = 0.50;
-const float particleSize = 2;
-float scaling = 0.800001;
+const float particleSize = 100;
+float scaling = 0.8001;
 float minimumSize = 1;
 float boxDistance = 0;
+float boxZSize = 2;
+float boxXSize = 2;
+float boxYSize = 2;
 
-float dt = 0.001;
+float dt = 0.006;
 const float friction_half_life = 0.040;
 const float frictionFactor = pow(0.5, (dt/friction_half_life));
 float beta = 0.3;
@@ -41,9 +44,9 @@ void start_containers(){
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> c(0,255);
-    std::uniform_real_distribution<> x(-2, 2);
-    std::uniform_real_distribution<> y(-2, 2);
-    std::uniform_real_distribution<> z(boxDistance, 2);
+    std::uniform_real_distribution<> x(-boxXSize, boxXSize);
+    std::uniform_real_distribution<> y(-boxYSize, boxYSize);
+    std::uniform_real_distribution<> z(boxDistance, boxZSize);
     std::uniform_real_distribution<> value(-1,1);
 
         
@@ -69,8 +72,12 @@ void start_containers(){
             positionsX.push_back(xPosition);
             positionsY.push_back(yPosition);
             positionsZ.push_back(zPosition);
-            velocitiesY.push_back(0);
+            //positionsX.push_back(-boxXSize);
+            //positionsY.push_back(boxYSize);
+            //positionsZ.push_back(boxZSize);
+            
             velocitiesX.push_back(0);
+            velocitiesY.push_back(0);
             velocitiesZ.push_back(0);
 
             //circles positions and color:
@@ -121,9 +128,9 @@ void checkCorner(){
         float yPosition = positionsY[i];
         float zPosition = positionsZ[i];
 
-        if(xPosition < -2) {velocitiesX[i] *= -1; positionsX[i] = -2;}else if(xPosition > 2){velocitiesX[i] *= -1; positionsX[i] = 2;}
-        if(yPosition < -2) {velocitiesY[i] *= -1; positionsY[i] = -2;}else if(yPosition > 2){velocitiesY[i] *= -1; positionsY[i] = 2;}
-        if(zPosition < boxDistance) {velocitiesZ[i] *= -1; positionsZ[i] = boxDistance;}else if(zPosition > 2){velocitiesZ[i] *= -1; positionsZ[i] = 2;}
+        if(xPosition < -boxXSize) {velocitiesX[i] *= -1; positionsX[i] = -boxXSize;}else if(xPosition > boxXSize){velocitiesX[i] *= -1; positionsX[i] = boxXSize;}
+        if(yPosition < -boxYSize) {velocitiesY[i] *= -1; positionsY[i] = -boxYSize;}else if(yPosition > boxYSize){velocitiesY[i] *= -1; positionsY[i] = boxYSize;}
+        if(zPosition < boxDistance) {velocitiesZ[i] *= -1; positionsZ[i] = boxDistance;}else if(zPosition > boxDistance + boxZSize){velocitiesZ[i] *= -1; positionsZ[i] = boxDistance + boxZSize;}
     }
 }
 
@@ -177,23 +184,50 @@ void updateParticles(){
         float screenX = (positionsX[i] * k + 1) * 0.5 * width;
         float screenY = (positionsY[i] * k + 1) * 0.5 * height;
 
-        //std::cout<<positionsZ[i]<<std::endl;
+        // {(-boxXSize, 0, 0 );  k = 1/2 ; (  (-boxXSize*k+1)*0.5 , 0 )}
+
         sf::CircleShape circle(scaling - scaling/2*(positionsZ[i] - boxDistance) + minimumSize);
         circle.setPosition(screenX, screenY);
         circle.setFillColor(allColors[i % number_of_colors]);
         allCircles.push_back(circle);
-        //allCircles[i].setPosition(screenX, screenY);
-        //allCircles[i](1);
 
     } 
 }
 
+void drawLine(sf::RenderWindow &window,float x0, float y0, float z0, float x1, float y1, float z1);
+void drawLine(sf::RenderWindow &window,float x0, float y0, float z0, float x1, float y1, float z1){
+    float n;
+    n = 1/(z0 + 2);
+    sf::Vector2f p8((x0 * n + 1) * 0.5 * width , (y0 * n + 1) * 0.5 * height);
+    n = 1/(z1 + 2);
+    sf::Vector2f p9((x1 * n + 1) * 0.5 * width , (y1 * n + 1) * 0.5 * height);
+    sf::VertexArray line5(sf::Lines, 2);
+    line5[0].position = p8;
+    line5[0].color = sf::Color::Red;
+    line5[1]. position = p9;
+    line5[1].color = sf::Color::Red;
+    window.draw(line5);
+}
 
 
 void update(sf::RenderWindow &window);
 void update(sf::RenderWindow &window){
     
     updateParticles();
+    drawLine(window,boxXSize,-boxYSize,0,boxXSize,-boxYSize,boxZSize);
+    drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
+    drawLine(window,-boxXSize, boxYSize,0,-boxXSize, boxYSize, boxZSize);
+    drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, -boxYSize, boxZSize);
+    drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
+    drawLine(window,-boxXSize, -boxYSize,boxZSize,boxXSize, -boxYSize, boxZSize);
+    drawLine(window,-boxXSize, boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
+    drawLine(window,-boxXSize, -boxYSize,boxZSize,-boxXSize, boxYSize, boxZSize);
+    drawLine(window,boxXSize, -boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
+    drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, boxYSize, 0);
+    drawLine(window,boxXSize, boxYSize,0,boxXSize, -boxYSize, 0);
+    drawLine(window,-boxXSize, -boxYSize,0,boxXSize,-boxYSize, 0);
+    drawLine(window,-boxXSize, boxYSize,0,boxXSize, boxYSize, 0);
+
 
     //drawing the particles:
     for(auto particle : allCircles){
@@ -201,26 +235,9 @@ void update(sf::RenderWindow &window){
     }
 }
 
-int main(){
+void keyEvents(sf::Event event){
 
-    start_containers();
-
-    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow window(desktop, "LIFE 2.0", sf::Style::Fullscreen);
-    
-    while(window.isOpen()){
-
-        sf::Event event;
-
-        while(window.pollEvent(event)){
-            if(event.type == sf::Event::Closed){
-                window.close();
-            }
-
-            if(event.type == sf::Event::KeyPressed){
-                
-                
-                if(event.key.code == sf::Keyboard::P){
+    if(event.key.code == sf::Keyboard::P){
                     forceFactor += 0.5;
                     std::cout<<"Force Facto : "<<forceFactor<<std::endl;
                 }else if(event.key.code == sf::Keyboard::O){
@@ -255,7 +272,74 @@ int main(){
                     if(scaling - 0.2 > 0) scaling -= 0.2;
                     std::cout<<"SCALING : "<<scaling<<std::endl;
                 }
+
+                if(event.key.code == sf::Keyboard::W){
+                    boxZSize += 0.2;
+                    std::cout<<"boxZSize : "<<boxZSize<<std::endl;
+                }else if(event.key.code == sf::Keyboard::Q){
+                    if(boxZSize - 0.2 > -1) boxZSize -= 0.2;
+                    std::cout<<"boxZsize : "<<boxZSize<<std::endl;
+                }
+                if(event.key.code == sf::Keyboard::Num4){
+                    boxYSize += 0.2;
+                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+                }else if(event.key.code == sf::Keyboard::Num3){
+                    if(boxYSize - 0.2 > -1) boxYSize -= 0.2;
+                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+                }
+                if(event.key.code == sf::Keyboard::Num6){
+                    boxXSize += 0.2;
+                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+                }else if(event.key.code == sf::Keyboard::Num5){
+                    if(boxXSize - 0.2 > -1) boxXSize -= 0.2;
+                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+                }
+
+                if(event.key.code == sf::Keyboard::Num2){
+                    boxXSize += 0.2;
+                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+                    boxZSize += 0.2;
+                    std::cout<<"boxZSize : "<<boxZSize<<std::endl;
+                    boxYSize += 0.2;
+                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+                }else if(event.key.code == sf::Keyboard::Num1){
+                    if(boxXSize - 0.2 > 0) boxXSize -= 0.2;
+                    std::cout<<"boxXsize : "<<boxXSize<<std::endl;
+                    if(boxZSize - 0.2 > 0) boxZSize -= 0.2;
+                    std::cout<<"boxZsize : "<<boxZSize<<std::endl;
+                    if(boxYSize - 0.2 > 0) boxYSize -= 0.2;
+                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+                }
+
+                
+
+
             
+            
+
+}
+
+
+int main(){
+
+    start_containers();
+
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktop, "LIFE 3.0", sf::Style::Fullscreen);
+    
+    while(window.isOpen()){
+
+        sf::Event event;
+
+        while(window.pollEvent(event)){
+            if(event.type == sf::Event::Closed){
+                window.close();
+            }
+
+            if(event.type == sf::Event::KeyPressed){
+                
+                
+                keyEvents(event);
             }
 
         }

@@ -5,17 +5,17 @@
 #include <vector>
 
 
-const int width = 700;
-const int height = 700; 
+const int width = 1280;
+const int height = 720; 
 
 const int number_of_colors = 5;
 const int group_size = 200;
 const int number_of_particles = number_of_colors * group_size;
 const int number_of_dimensions = 2;
 float rMax = 80;
-const float particleSize = 2;
+const float particleSize = 1;
 
-float dt = 0.001;
+float dt = 0.006;
 const float friction_half_life = 0.040;
 const float frictionFactor = pow(0.5, (dt/friction_half_life));
 float beta = 0.3;
@@ -182,7 +182,9 @@ int main(){
 
     start_containers();
 
-    sf::RenderWindow window(sf::VideoMode(width, height), "LIFE 2.0");
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktop, "LIFE 2.0", sf::Style::Fullscreen);
+
     
     while(window.isOpen()){
 
