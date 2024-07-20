@@ -7,9 +7,10 @@
 
 const int width = 1280;
 const int height = 720; 
+const float mouseVelocitie = 30;
 
-const int number_of_colors = 4;  //Here we change the number of species 
-const int group_size = 200; // Here we have the total of particles per species
+const int number_of_colors = 3;  //Here we change the number of species 
+const int group_size = 500; // Here we have the total of particles per species
 
 
 const int number_of_particles = number_of_colors * group_size;
@@ -21,6 +22,10 @@ float boxDistance = 0;
 float boxZSize = 2;
 float boxXSize = 2;
 float boxYSize = 2;
+float zoom = 2;
+float cameraX = 0;
+float cameraY = 0;
+bool toggleLines = true;
 
 float dt = 0.006;
 const float friction_half_life = 0.040;
@@ -37,7 +42,7 @@ std::vector<float> velocitiesZ;
 std::vector<float> velocitiesX;
 std::vector<float> velocitiesY;
 std::vector<sf::CircleShape> allCircles;
-
+sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 
 void start_containers();
 void start_containers(){
@@ -180,9 +185,9 @@ void updateParticles(){
         
         //updating the circle 2d position:
 
-        float k = 1/(positionsZ[i] + 2) ;
-        float screenX = (positionsX[i] * k + 1) * 0.5 * width;
-        float screenY = (positionsY[i] * k + 1) * 0.5 * height;
+        float k = 1/(positionsZ[i] + zoom) ;
+        float screenX = (positionsX[i] * k + 1) * 0.5 * width  + cameraX;
+        float screenY = (positionsY[i] * k + 1) * 0.5 * height + cameraY;
 
         // {(-boxXSize, 0, 0 );  k = 1/2 ; (  (-boxXSize*k+1)*0.5 , 0 )}
 
@@ -197,10 +202,10 @@ void updateParticles(){
 void drawLine(sf::RenderWindow &window,float x0, float y0, float z0, float x1, float y1, float z1);
 void drawLine(sf::RenderWindow &window,float x0, float y0, float z0, float x1, float y1, float z1){
     float n;
-    n = 1/(z0 + 2);
-    sf::Vector2f p8((x0 * n + 1) * 0.5 * width , (y0 * n + 1) * 0.5 * height);
-    n = 1/(z1 + 2);
-    sf::Vector2f p9((x1 * n + 1) * 0.5 * width , (y1 * n + 1) * 0.5 * height);
+    n = 1/(z0 + zoom);
+    sf::Vector2f p8((x0 * n + 1) * 0.5 * width + cameraX, (y0 * n + 1) * 0.5 * height + cameraY);
+    n = 1/(z1 + zoom);
+    sf::Vector2f p9((x1 * n + 1) * 0.5 * width + cameraX, (y1 * n + 1) * 0.5 * height + cameraY);
     sf::VertexArray line5(sf::Lines, 2);
     line5[0].position = p8;
     line5[0].color = sf::Color::Red;
@@ -214,20 +219,22 @@ void update(sf::RenderWindow &window);
 void update(sf::RenderWindow &window){
     
     updateParticles();
-    drawLine(window,boxXSize,-boxYSize,0,boxXSize,-boxYSize,boxZSize);
-    drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
-    drawLine(window,-boxXSize, boxYSize,0,-boxXSize, boxYSize, boxZSize);
-    drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, -boxYSize, boxZSize);
-    drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
-    drawLine(window,-boxXSize, -boxYSize,boxZSize,boxXSize, -boxYSize, boxZSize);
-    drawLine(window,-boxXSize, boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
-    drawLine(window,-boxXSize, -boxYSize,boxZSize,-boxXSize, boxYSize, boxZSize);
-    drawLine(window,boxXSize, -boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
-    drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, boxYSize, 0);
-    drawLine(window,boxXSize, boxYSize,0,boxXSize, -boxYSize, 0);
-    drawLine(window,-boxXSize, -boxYSize,0,boxXSize,-boxYSize, 0);
-    drawLine(window,-boxXSize, boxYSize,0,boxXSize, boxYSize, 0);
 
+    if(toggleLines){
+        drawLine(window,boxXSize,-boxYSize,0,boxXSize,-boxYSize,boxZSize);
+        drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
+        drawLine(window,-boxXSize, boxYSize,0,-boxXSize, boxYSize, boxZSize);
+        drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, -boxYSize, boxZSize);
+        drawLine(window,boxXSize, boxYSize,0,boxXSize, boxYSize, boxZSize);
+        drawLine(window,-boxXSize, -boxYSize,boxZSize,boxXSize, -boxYSize, boxZSize);
+        drawLine(window,-boxXSize, boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
+        drawLine(window,-boxXSize, -boxYSize,boxZSize,-boxXSize, boxYSize, boxZSize);
+        drawLine(window,boxXSize, -boxYSize,boxZSize,boxXSize, boxYSize, boxZSize);
+        drawLine(window,-boxXSize, -boxYSize,0,-boxXSize, boxYSize, 0);
+        drawLine(window,boxXSize, boxYSize,0,boxXSize, -boxYSize, 0);
+        drawLine(window,-boxXSize, -boxYSize,0,boxXSize,-boxYSize, 0);
+        drawLine(window,-boxXSize, boxYSize,0,boxXSize, boxYSize, 0);
+    }
 
     //drawing the particles:
     for(auto particle : allCircles){
@@ -238,93 +245,141 @@ void update(sf::RenderWindow &window){
 void keyEvents(sf::Event event){
 
     if(event.key.code == sf::Keyboard::P){
-                    forceFactor += 0.5;
-                    std::cout<<"Force Facto : "<<forceFactor<<std::endl;
-                }else if(event.key.code == sf::Keyboard::O){
-                    forceFactor -= 0.5;
-                    std::cout<<"Force Facto : "<<forceFactor<<std::endl;                    
-                }
-                if(event.key.code == sf::Keyboard::L){
-                    dt += 0.001;
-                    std::cout<<"dt : "<<dt<<std::endl;
-                }else if(event.key.code == sf::Keyboard::K){
-                    if(dt - 0.001 > 0) dt -= 0.001;
-                    std::cout<<"dt : "<<dt<<std::endl;
-                }
-                 if(event.key.code == sf::Keyboard::M){
-                    rMax += 0.01;
-                    std::cout<<"R MAX : "<<rMax<<std::endl;
-                }else if(event.key.code == sf::Keyboard::N){
-                    if(rMax - 0.01 > 0) rMax -= 0.01;
-                    std::cout<<"R MAX : "<<rMax<<std::endl;
-                }
-                 if(event.key.code == sf::Keyboard::H){
-                    beta += 0.05;
-                    std::cout<<" BETA : "<<beta<<std::endl;
-                }else if(event.key.code == sf::Keyboard::G){
-                    if(beta - 0.05 > 0) beta -= 0.05;
-                    std::cout<<" BETA : "<<beta<<std::endl;
-                }
-                 if(event.key.code == sf::Keyboard::S){
-                    scaling += 0.2;
-                    std::cout<<"SCALING : "<<scaling<<std::endl;
-                }else if(event.key.code == sf::Keyboard::A){
-                    if(scaling - 0.2 > 0) scaling -= 0.2;
-                    std::cout<<"SCALING : "<<scaling<<std::endl;
-                }
+            forceFactor += 0.5;
+            std::cout<<"Force Facto : "<<forceFactor<<std::endl;
+        }else if(event.key.code == sf::Keyboard::O){
+            forceFactor -= 0.5;
+            std::cout<<"Force Facto : "<<forceFactor<<std::endl;                    
+        }
+    if(event.key.code == sf::Keyboard::L){
+        dt += 0.001;
+        std::cout<<"dt : "<<dt<<std::endl;
+    }else if(event.key.code == sf::Keyboard::K){
+        if(dt - 0.001 > 0) dt -= 0.001;
+        std::cout<<"dt : "<<dt<<std::endl;
+    }
+        if(event.key.code == sf::Keyboard::M){
+        rMax += 0.01;
+        std::cout<<"R MAX : "<<rMax<<std::endl;
+    }else if(event.key.code == sf::Keyboard::N){
+        if(rMax - 0.01 > 0) rMax -= 0.01;
+        std::cout<<"R MAX : "<<rMax<<std::endl;
+    }
+        if(event.key.code == sf::Keyboard::H){
+        beta += 0.05;
+        std::cout<<" BETA : "<<beta<<std::endl;
+    }else if(event.key.code == sf::Keyboard::G){
+        if(beta - 0.05 > 0) beta -= 0.05;
+        std::cout<<" BETA : "<<beta<<std::endl;
+    }
+        if(event.key.code == sf::Keyboard::Up){
+        scaling += 0.2;
+        std::cout<<"SCALING : "<<scaling<<std::endl;
+    }else if(event.key.code == sf::Keyboard::Down){
+        if(scaling - 0.2 > 0) scaling -= 0.2;
+        std::cout<<"SCALING : "<<scaling<<std::endl;
+    }
 
-                if(event.key.code == sf::Keyboard::W){
-                    boxZSize += 0.2;
-                    std::cout<<"boxZSize : "<<boxZSize<<std::endl;
-                }else if(event.key.code == sf::Keyboard::Q){
-                    if(boxZSize - 0.2 > -1) boxZSize -= 0.2;
-                    std::cout<<"boxZsize : "<<boxZSize<<std::endl;
-                }
-                if(event.key.code == sf::Keyboard::Num4){
-                    boxYSize += 0.2;
-                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-                }else if(event.key.code == sf::Keyboard::Num3){
-                    if(boxYSize - 0.2 > -1) boxYSize -= 0.2;
-                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-                }
-                if(event.key.code == sf::Keyboard::Num6){
-                    boxXSize += 0.2;
-                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-                }else if(event.key.code == sf::Keyboard::Num5){
-                    if(boxXSize - 0.2 > -1) boxXSize -= 0.2;
-                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-                }
+    if(event.key.code == sf::Keyboard::Num8){
+        boxZSize += 0.2;
+        std::cout<<"boxZSize : "<<boxZSize<<std::endl;
+    }else if(event.key.code == sf::Keyboard::Num7){
+        if(boxZSize - 0.2 > -1) boxZSize -= 0.2;
+        std::cout<<"boxZsize : "<<boxZSize<<std::endl;
+    }
+    if(event.key.code == sf::Keyboard::Num4){
+        boxYSize += 0.2;
+        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+    }else if(event.key.code == sf::Keyboard::Num3){
+        if(boxYSize - 0.2 > -1) boxYSize -= 0.2;
+        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+    }
+    if(event.key.code == sf::Keyboard::Num6){
+        boxXSize += 0.2;
+        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+    }else if(event.key.code == sf::Keyboard::Num5){
+        if(boxXSize - 0.2 > -1) boxXSize -= 0.2;
+        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+    }
 
-                if(event.key.code == sf::Keyboard::Num2){
-                    boxXSize += 0.2;
-                    std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-                    boxZSize += 0.2;
-                    std::cout<<"boxZSize : "<<boxZSize<<std::endl;
-                    boxYSize += 0.2;
-                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-                }else if(event.key.code == sf::Keyboard::Num1){
-                    if(boxXSize - 0.2 > 0) boxXSize -= 0.2;
-                    std::cout<<"boxXsize : "<<boxXSize<<std::endl;
-                    if(boxZSize - 0.2 > 0) boxZSize -= 0.2;
-                    std::cout<<"boxZsize : "<<boxZSize<<std::endl;
-                    if(boxYSize - 0.2 > 0) boxYSize -= 0.2;
-                    std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-                }
+    if(event.key.code == sf::Keyboard::Num2){
+        boxXSize += 0.2;
+        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
+        boxZSize += 0.2;
+        std::cout<<"boxZSize : "<<boxZSize<<std::endl;
+        boxYSize += 0.2;
+        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+    }else if(event.key.code == sf::Keyboard::Num1){
+        if(boxXSize - 0.2 > 0) boxXSize -= 0.2;
+        std::cout<<"boxXsize : "<<boxXSize<<std::endl;
+        if(boxZSize - 0.2 > 0) boxZSize -= 0.2;
+        std::cout<<"boxZsize : "<<boxZSize<<std::endl;
+        if(boxYSize - 0.2 > 0) boxYSize -= 0.2;
+        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
+    }
+    if(event.key.code == sf::Keyboard::I){
+        if(toggleLines){toggleLines = false;}else{toggleLines = true;}
+    }
+    
+    bool LShift = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+    if(event.key.code == sf::Keyboard::A){
+        if(LShift){cameraX += 20;}else{cameraX += 5;}
+        std::cout<<"cameraX : "<<cameraX<<std::endl;
+    }else if(event.key.code == sf::Keyboard::D){
+        if(LShift) {cameraX -= 20;}else{cameraX -= 5;}
+        std::cout<<"cameraX : "<<cameraX<<std::endl;
+    }
 
-                
+    if(event.key.code == sf::Keyboard::W){
+        if(LShift){cameraY += 20;}else{cameraY += 5;}
+        std::cout<<"cameraY : "<<cameraY<<std::endl;
+    }else if(event.key.code == sf::Keyboard::S){
+        if(LShift){cameraY -= 20;}else{cameraY -= 5;}
+        std::cout<<"cameraY : "<<cameraY<<std::endl;
+    }
 
-
-            
-            
+              
 
 }
+void mouseUsed(sf::Event event, sf::RenderWindow &window);
+void mouseUsed(sf::Event event, sf::RenderWindow &window){
+    
+    sf::Vector2i mouse = sf::Mouse::getPosition(window);
+    float k = 1/(zoom) ;
+    float screenX = cameraX; 
+    float screenY = cameraY;
+    float temp = mouse.x;
+    float mouseX = temp/desktop.width*2 -1;
+    temp = mouse.y;
+    float mouseY = temp/desktop.height*2 -1;
 
+    if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+        if (event.mouseWheelScroll.delta > 0) {
+                zoom -= 0.1;
+                if(mouseX < 0){
+                    cameraX -= mouseX*mouseVelocitie;
+                }else{cameraX -= mouseX*mouseVelocitie;}
+                if(mouseY < 0){
+                    cameraY -= mouseY * mouseVelocitie;
+                }else{cameraY -= mouseY * mouseVelocitie;}
+            }else {
+                zoom += 0.1;
+                if(mouseX < 0){
+                    cameraX += mouseX * mouseVelocitie * 0.1;
+                }else{cameraX += mouseX * mouseVelocitie * 0.1;}
+                if(mouseY < 0){
+                    cameraY += mouseY * mouseVelocitie * 0.1;
+                }else{cameraY += mouseY * mouseVelocitie * 0.1;}
+        }
+    }
+    
+
+}
 
 int main(){
 
     start_containers();
 
-    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     sf::RenderWindow window(desktop, "LIFE 3.0", sf::Style::Fullscreen);
     
     while(window.isOpen()){
@@ -335,13 +390,12 @@ int main(){
             if(event.type == sf::Event::Closed){
                 window.close();
             }
-
-            if(event.type == sf::Event::KeyPressed){
-                
-                
+            if(event.type == sf::Event::KeyPressed){     
                 keyEvents(event);
             }
-
+            if(event.type == sf::Event::MouseWheelScrolled){
+            mouseUsed(event, window);
+            }
         }
 
         window.clear(sf::Color::Black);
