@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -9,8 +10,8 @@ const int width = 1280;
 const int height = 720; 
 const float mouseVelocitie = 30;
 
-const int number_of_colors = 3;  //Here we change the number of species 
-const int group_size = 500; // Here we have the total of particles per species
+const int number_of_colors = 10;  //Here we change the number of species 
+const int group_size = 100; // Here we have the total of particles per species
 
 
 const int number_of_particles = number_of_colors * group_size;
@@ -32,6 +33,8 @@ const float friction_half_life = 0.040;
 const float frictionFactor = pow(0.5, (dt/friction_half_life));
 float beta = 0.3;
 float forceFactor = 10;
+float gravity = 9.5;
+
 
 std::vector<std::vector<float>> forces;
 std::vector<sf::Color> allColors;
@@ -140,6 +143,9 @@ void checkCorner(){
 }
 
 
+
+
+
 void updateParticles();
 void updateParticles(){
     
@@ -175,7 +181,7 @@ void updateParticles(){
         velocitiesZ[i] *= frictionFactor;
 
         velocitiesX[i] += totalForceX * dt;
-        velocitiesY[i] += totalForceY * dt;
+        velocitiesY[i] += (totalForceY + gravity) * dt ;
         velocitiesZ[i] += totalForceZ * dt;
         //updating positions:
 
@@ -244,98 +250,157 @@ void update(sf::RenderWindow &window){
 
 void keyEvents(sf::Event event){
 
-    if(event.key.code == sf::Keyboard::P){
-            forceFactor += 0.5;
-            std::cout<<"Force Facto : "<<forceFactor<<std::endl;
-        }else if(event.key.code == sf::Keyboard::O){
-            forceFactor -= 0.5;
-            std::cout<<"Force Facto : "<<forceFactor<<std::endl;                    
-        }
-    if(event.key.code == sf::Keyboard::L){
-        dt += 0.001;
-        std::cout<<"dt : "<<dt<<std::endl;
-    }else if(event.key.code == sf::Keyboard::K){
-        if(dt - 0.001 > 0) dt -= 0.001;
-        std::cout<<"dt : "<<dt<<std::endl;
-    }
-        if(event.key.code == sf::Keyboard::M){
-        rMax += 0.01;
-        std::cout<<"R MAX : "<<rMax<<std::endl;
-    }else if(event.key.code == sf::Keyboard::N){
-        if(rMax - 0.01 > 0) rMax -= 0.01;
-        std::cout<<"R MAX : "<<rMax<<std::endl;
-    }
-        if(event.key.code == sf::Keyboard::H){
-        beta += 0.05;
-        std::cout<<" BETA : "<<beta<<std::endl;
-    }else if(event.key.code == sf::Keyboard::G){
-        if(beta - 0.05 > 0) beta -= 0.05;
-        std::cout<<" BETA : "<<beta<<std::endl;
-    }
-        if(event.key.code == sf::Keyboard::Up){
-        scaling += 0.2;
-        std::cout<<"SCALING : "<<scaling<<std::endl;
-    }else if(event.key.code == sf::Keyboard::Down){
-        if(scaling - 0.2 > 0) scaling -= 0.2;
-        std::cout<<"SCALING : "<<scaling<<std::endl;
-    }
 
-    if(event.key.code == sf::Keyboard::Num8){
-        boxZSize += 0.2;
-        std::cout<<"boxZSize : "<<boxZSize<<std::endl;
-    }else if(event.key.code == sf::Keyboard::Num7){
-        if(boxZSize - 0.2 > -1) boxZSize -= 0.2;
-        std::cout<<"boxZsize : "<<boxZSize<<std::endl;
-    }
-    if(event.key.code == sf::Keyboard::Num4){
-        boxYSize += 0.2;
-        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-    }else if(event.key.code == sf::Keyboard::Num3){
-        if(boxYSize - 0.2 > -1) boxYSize -= 0.2;
-        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-    }
-    if(event.key.code == sf::Keyboard::Num6){
-        boxXSize += 0.2;
-        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-    }else if(event.key.code == sf::Keyboard::Num5){
-        if(boxXSize - 0.2 > -1) boxXSize -= 0.2;
-        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-    }
 
-    if(event.key.code == sf::Keyboard::Num2){
-        boxXSize += 0.2;
-        std::cout<<"boxXSize : "<<boxXSize<<std::endl;
-        boxZSize += 0.2;
-        std::cout<<"boxZSize : "<<boxZSize<<std::endl;
-        boxYSize += 0.2;
-        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-    }else if(event.key.code == sf::Keyboard::Num1){
-        if(boxXSize - 0.2 > 0) boxXSize -= 0.2;
-        std::cout<<"boxXsize : "<<boxXSize<<std::endl;
-        if(boxZSize - 0.2 > 0) boxZSize -= 0.2;
-        std::cout<<"boxZsize : "<<boxZSize<<std::endl;
-        if(boxYSize - 0.2 > 0) boxYSize -= 0.2;
-        std::cout<<"boxYSize : "<<boxYSize<<std::endl;
-    }
-    if(event.key.code == sf::Keyboard::I){
-        if(toggleLines){toggleLines = false;}else{toggleLines = true;}
-    }
-    
+    bool Equal = sf::Keyboard::isKeyPressed(sf::Keyboard::Equal);
+    bool Hyphen = sf::Keyboard::isKeyPressed(sf::Keyboard::Hyphen);
+    bool PKey = sf::Keyboard::isKeyPressed(sf::Keyboard::P);
+    bool OKey = sf::Keyboard::isKeyPressed(sf::Keyboard::O);
+    bool LKey = sf::Keyboard::isKeyPressed(sf::Keyboard::L);
+    bool KKey = sf::Keyboard::isKeyPressed(sf::Keyboard::K);
+    bool MKey = sf::Keyboard::isKeyPressed(sf::Keyboard::M);
+    bool NKey = sf::Keyboard::isKeyPressed(sf::Keyboard::N);
+    bool HKey = sf::Keyboard::isKeyPressed(sf::Keyboard::H);
+    bool GKey = sf::Keyboard::isKeyPressed(sf::Keyboard::G);
+    bool UpKey = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
+    bool DownKey = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+    bool Num8Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num8);
+    bool Num7Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num7);
+    bool Num4Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num4);
+    bool Num3Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num3);
+    bool Num6Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num6);
+    bool Num5Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num5);
+    bool Num2Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num2);
+    bool Num1Key = sf::Keyboard::isKeyPressed(sf::Keyboard::Num1);
+    bool IKey = sf::Keyboard::isKeyPressed(sf::Keyboard::I);
+    bool AKey = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    bool DKey = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    bool WKey = sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+    bool SKey = sf::Keyboard::isKeyPressed(sf::Keyboard::S);
     bool LShift = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
-    if(event.key.code == sf::Keyboard::A){
-        if(LShift){cameraX += 20;}else{cameraX += 5;}
-        std::cout<<"cameraX : "<<cameraX<<std::endl;
-    }else if(event.key.code == sf::Keyboard::D){
-        if(LShift) {cameraX -= 20;}else{cameraX -= 5;}
-        std::cout<<"cameraX : "<<cameraX<<std::endl;
+
+    if(Equal){
+        gravity+=0.5;
+        std::cout<<"gravity : "<<gravity<<std::endl;
+    }else if(Hyphen){
+        if(gravity - 0.5 >= 0){gravity-=0.5;}else{gravity = 0;} 
+        std::cout<<"gravity : "<<gravity<<std::endl;
+        }
+
+    if (PKey) {
+        forceFactor += 0.5;
+        std::cout << "Force Factor : " << forceFactor << std::endl;
+    } else if (OKey) {
+        forceFactor -= 0.5;
+        std::cout << "Force Factor : " << forceFactor << std::endl;
     }
 
-    if(event.key.code == sf::Keyboard::W){
-        if(LShift){cameraY += 20;}else{cameraY += 5;}
-        std::cout<<"cameraY : "<<cameraY<<std::endl;
-    }else if(event.key.code == sf::Keyboard::S){
-        if(LShift){cameraY -= 20;}else{cameraY -= 5;}
-        std::cout<<"cameraY : "<<cameraY<<std::endl;
+    if (LKey) {
+        dt += 0.001;
+        std::cout << "dt : " << dt << std::endl;
+    } else if (KKey) {
+        if (dt - 0.001 > 0) dt -= 0.001;
+        std::cout << "dt : " << dt << std::endl;
+    }
+
+    if (MKey) {
+        rMax += 0.01;
+        std::cout << "R MAX : " << rMax << std::endl;
+    } else if (NKey) {
+        if (rMax - 0.01 > 0) rMax -= 0.01;
+        std::cout << "R MAX : " << rMax << std::endl;
+    }
+
+    if (HKey) {
+        beta += 0.05;
+        std::cout << "BETA : " << beta << std::endl;
+    } else if (GKey) {
+        if (beta - 0.05 > 0) beta -= 0.05;
+        std::cout << "BETA : " << beta << std::endl;
+    }
+
+    if (UpKey) {
+        scaling += 0.2;
+        std::cout << "SCALING : " << scaling << std::endl;
+    } else if (DownKey) {
+        if (scaling - 0.2 > 0) scaling -= 0.2;
+        std::cout << "SCALING : " << scaling << std::endl;
+    }
+
+    if (Num8Key) {
+        boxZSize += 0.2;
+        std::cout << "boxZSize : " << boxZSize << std::endl;
+    } else if (Num7Key) {
+        if (boxZSize - 0.2 > -1) boxZSize -= 0.2;
+        std::cout << "boxZSize : " << boxZSize << std::endl;
+    }
+
+    if (Num4Key) {
+        boxYSize += 0.2;
+        std::cout << "boxYSize : " << boxYSize << std::endl;
+    } else if (Num3Key) {
+        if (boxYSize - 0.2 > -1) boxYSize -= 0.2;
+        std::cout << "boxYSize : " << boxYSize << std::endl;
+    }
+
+    if (Num6Key) {
+        boxXSize += 0.2;
+        std::cout << "boxXSize : " << boxXSize << std::endl;
+    } else if (Num5Key) {
+        if (boxXSize - 0.2 > -1) boxXSize -= 0.2;
+        std::cout << "boxXSize : " << boxXSize << std::endl;
+    }
+
+    if (Num2Key) {
+        boxXSize += 0.2;
+        std::cout << "boxXSize : " << boxXSize << std::endl;
+        boxZSize += 0.2;
+        std::cout << "boxZSize : " << boxZSize << std::endl;
+        boxYSize += 0.2;
+        std::cout << "boxYSize : " << boxYSize << std::endl;
+    } else if (Num1Key) {
+        if (boxXSize - 0.2 > 0) boxXSize -= 0.2;
+        std::cout << "boxXSize : " << boxXSize << std::endl;
+        if (boxZSize - 0.2 > 0) boxZSize -= 0.2;
+        std::cout << "boxZSize : " << boxZSize << std::endl;
+        if (boxYSize - 0.2 > 0) boxYSize -= 0.2;
+        std::cout << "boxYSize : " << boxYSize << std::endl;
+    }
+
+    if (IKey) {
+        toggleLines = !toggleLines;
+    }
+
+    if (AKey) {
+        if (LShift) {
+            cameraX += 20;
+        } else {
+            cameraX += 5;
+        }
+        std::cout << "cameraX : " << cameraX << std::endl;
+    } else if (DKey) {
+        if (LShift) {
+            cameraX -= 20;
+        } else {
+            cameraX -= 5;
+        }
+        std::cout << "cameraX : " << cameraX << std::endl;
+    }
+
+    if (WKey) {
+        if (LShift) {
+            cameraY += 20;
+        } else {
+            cameraY += 5;
+        }
+        std::cout << "cameraY : " << cameraY << std::endl;
+    } else if (SKey) {
+        if (LShift) {
+            cameraY -= 20;
+        } else {
+            cameraY -= 5;
+        }
+        std::cout << "cameraY : " << cameraY << std::endl;
     }
 
               
@@ -381,6 +446,9 @@ int main(){
     start_containers();
 
     sf::RenderWindow window(desktop, "LIFE 3.0", sf::Style::Fullscreen);
+    sf::Music music;
+    music.openFromFile("Sounds/theme.mp3");
+    music.play();
     
     while(window.isOpen()){
 

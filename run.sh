@@ -11,7 +11,8 @@ filename=$(basename -- "$1")
 filename="${filename%.*}"
 
 # Compila o arquivo .cpp
-g++ -o "$filename" "$1" -lsfml-graphics -lsfml-window -lsfml-system
+g++ -o "$filename" "$1" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+
 
 # Verifica se a compilação foi bem-sucedida
 if [ $? -eq 0 ]; then
