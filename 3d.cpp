@@ -10,8 +10,8 @@ const int width = 1280;
 const int height = 720; 
 const float mouseVelocitie = 30;
 
-const int number_of_colors = 10;  //Here we change the number of species 
-const int group_size = 100; // Here we have the total of particles per species
+const int number_of_colors = 5;  //Here we change the number of species 
+const int group_size = 200; // Here we have the total of particles per species
 
 
 const int number_of_particles = number_of_colors * group_size;
@@ -27,6 +27,7 @@ float zoom = 2;
 float cameraX = 0;
 float cameraY = 0;
 bool toggleLines = true;
+
 
 float dt = 0.006;
 const float friction_half_life = 0.040;

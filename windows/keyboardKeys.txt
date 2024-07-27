@@ -1,0 +1,102 @@
+sf::Keyboard::Unknown    // Unhandled key
+sf::Keyboard::A          // The A key
+sf::Keyboard::B          // The B key
+sf::Keyboard::C          // The C key
+sf::Keyboard::D          // The D key
+sf::Keyboard::E          // The E key
+sf::Keyboard::F          // The F key
+sf::Keyboard::G          // The G key
+sf::Keyboard::H          // The H key
+sf::Keyboard::I          // The I key
+sf::Keyboard::J          // The J key
+sf::Keyboard::K          // The K key
+sf::Keyboard::L          // The L key
+sf::Keyboard::M          // The M key
+sf::Keyboard::N          // The N key
+sf::Keyboard::O          // The O key
+sf::Keyboard::P          // The P key
+sf::Keyboard::Q          // The Q key
+sf::Keyboard::R          // The R key
+sf::Keyboard::S          // The S key
+sf::Keyboard::T          // The T key
+sf::Keyboard::U          // The U key
+sf::Keyboard::V          // The V key
+sf::Keyboard::W          // The W key
+sf::Keyboard::X          // The X key
+sf::Keyboard::Y          // The Y key
+sf::Keyboard::Z          // The Z key
+sf::Keyboard::Num0       // The 0 key
+sf::Keyboard::Num1       // The 1 key
+sf::Keyboard::Num2       // The 2 key
+sf::Keyboard::Num3       // The 3 key
+sf::Keyboard::Num4       // The 4 key
+sf::Keyboard::Num5       // The 5 key
+sf::Keyboard::Num6       // The 6 key
+sf::Keyboard::Num7       // The 7 key
+sf::Keyboard::Num8       // The 8 key
+sf::Keyboard::Num9       // The 9 key
+sf::Keyboard::Escape     // The Escape key
+sf::Keyboard::LControl   // The left Control key
+sf::Keyboard::LShift     // The left Shift key
+sf::Keyboard::LAlt       // The left Alt key
+sf::Keyboard::LSystem    // The left OS specific key: window (Windows and Linux), apple (MacOS X), ...
+sf::Keyboard::RControl   // The right Control key
+sf::Keyboard::RShift     // The right Shift key
+sf::Keyboard::RAlt       // The right Alt key
+sf::Keyboard::RSystem    // The right OS specific key: window (Windows and Linux), apple (MacOS X), ...
+sf::Keyboard::Menu       // The Menu key
+sf::Keyboard::LBracket   // The [ key
+sf::Keyboard::RBracket   // The ] key
+sf::Keyboard::Semicolon  // The ; key
+sf::Keyboard::Comma      // The , key
+sf::Keyboard::Period     // The . key
+sf::Keyboard::Quote      // The ' key
+sf::Keyboard::Slash      // The / key
+sf::Keyboard::Backslash  // The \ key
+sf::Keyboard::Tilde      // The ~ key
+sf::Keyboard::Equal      // The = key
+sf::Keyboard::Hyphen     // The - key (hyphen)
+sf::Keyboard::Space      // The Space key
+sf::Keyboard::Enter      // The Enter/Return keys
+sf::Keyboard::Backspace  // The Backspace key
+sf::Keyboard::Tab        // The Tabulation key
+sf::Keyboard::PageUp     // The Page up key
+sf::Keyboard::PageDown   // The Page down key
+sf::Keyboard::End        // The End key
+sf::Keyboard::Home       // The Home key
+sf::Keyboard::Insert     // The Insert key
+sf::Keyboard::Delete     // The Delete key
+sf::Keyboard::Add        // The + key
+sf::Keyboard::Subtract   // The - key (minus, usually from numpad)
+sf::Keyboard::Multiply   // The * key
+sf::Keyboard::Divide     // The / key
+sf::Keyboard::Left       // Left arrow
+sf::Keyboard::Right      // Right arrow
+sf::Keyboard::Up         // Up arrow
+sf::Keyboard::Down       // Down arrow
+sf::Keyboard::Numpad0    // The numpad 0 key
+sf::Keyboard::Numpad1    // The numpad 1 key
+sf::Keyboard::Numpad2    // The numpad 2 key
+sf::Keyboard::Numpad3    // The numpad 3 key
+sf::Keyboard::Numpad4    // The numpad 4 key
+sf::Keyboard::Numpad5    // The numpad 5 key
+sf::Keyboard::Numpad6    // The numpad 6 key
+sf::Keyboard::Numpad7    // The numpad 7 key
+sf::Keyboard::Numpad8    // The numpad 8 key
+sf::Keyboard::Numpad9    // The numpad 9 key
+sf::Keyboard::F1         // The F1 key
+sf::Keyboard::F2         // The F2 key
+sf::Keyboard::F3         // The F3 key
+sf::Keyboard::F4         // The F4 key
+sf::Keyboard::F5         // The F5 key
+sf::Keyboard::F6         // The F6 key
+sf::Keyboard::F7         // The F7 key
+sf::Keyboard::F8         // The F8 key
+sf::Keyboard::F9         // The F9 key
+sf::Keyboard::F10        // The F10 key
+sf::Keyboard::F11        // The F11 key
+sf::Keyboard::F12        // The F12 key
+sf::Keyboard::F13        // The F13 key
+sf::Keyboard::F14        // The F14 key
+sf::Keyboard::F15        // The F15 key
+sf::Keyboard::Pause      // The Pause key

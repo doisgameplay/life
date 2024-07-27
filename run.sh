@@ -10,14 +10,18 @@ fi
 filename=$(basename -- "$1")
 filename="${filename%.*}"
 
-# Compila o arquivo .cpp
-g++ -o "$filename" "$1" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+# Verifica se a pasta 'programs' existe, se não, cria
+if [ ! -d "programs" ]; then
+    mkdir programs
+fi
 
+# Compila o arquivo .cpp e coloca o executável na pasta 'programs'
+g++ -o "programs/$filename" "$1" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 # Verifica se a compilação foi bem-sucedida
 if [ $? -eq 0 ]; then
-    # Executa o arquivo compilado
-    ./"$filename"
+    # Executa o arquivo compilado da pasta 'programs'
+    ./programs/"$filename"
 else
     echo "Erro na compilação."
     exit 1
