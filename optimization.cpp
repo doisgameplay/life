@@ -5,19 +5,24 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <thread>
 
-const int width = 1280;
-const int height = 720; 
-const int gridSize = 30; //will divide the grid on an 10 x 10 ;
+const int width = 5000;
+const int height = 5000; 
+const int gridSize = 40; //will divide the grid on an 10 x 10 ;
+float xCam = 0;
+float yCam = 0;
+float zoom = 1;
+float mouseVelocitie = 1;
 
-const int number_of_colors = 3;
-const int group_size = 800;
+const int number_of_colors = 20;
+const int group_size = 250;
 const int number_of_particles = number_of_colors * group_size;
 const int number_of_dimensions = 2;
-float rMax = 80;
-const float particleSize = 1.5;
+float rMax = 80.0f;
+const float particleSize = 2.0f;
 
-float dt = 0.006;
+float dt = 0.006f;
 const float friction_half_life = 0.040;
 const float frictionFactor = pow(0.5, (dt/friction_half_life));
 float beta = 0.3;
@@ -123,22 +128,26 @@ void checkCorner(std::vector<float>& positionsX,std::vector<float>& positionsY,s
         float xPosition = positionsX[i];
         float yPosition = positionsY[i];
         
-        //if(xPosition < 0){velocitiesX[i]*=-1; positionsX[i] = 0;}else if(xPosition > width){velocitiesX[i] *= -1; positionsX[i] = width - 2*particleSize;}
-        //if(yPosition < 0){velocitiesY[i] *= -1; positionsY[i] = 0;}else if(yPosition > height){velocitiesY[i] *= -1; positionsY[i] = height - 2*particleSize;}
+        //if(xPosition < 0){velocitiesX[i]*=-1; positionsX[i] = 0;}else if(xPosition > width-10){velocitiesX[i] *= -1; positionsX[i] = width ;}
+        //if(yPosition < 0){velocitiesY[i] *= -1; positionsY[i] = 0;}else if(yPosition > height-10){velocitiesY[i] *= -1; positionsY[i] = height/2 ;}
         if(xPosition < 0 ){positionsX[i] = width;}else if(xPosition > width){positionsX[i] = 0;}
-        if(yPosition < 0 ){positionsY[i] = height;}else if(positionsY[i] > height){positionsY[i] = 0;}
+        if(yPosition <= 0 ){positionsY[i] = height;}else if(positionsY[i] > height){positionsY[i] = 0;}
 
     }
 }
 
-void updateParticles(std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY, std::vector<sf::CircleShape>& allCircles,std::vector<std::vector<float>>& forces, std::unordered_map<int,std::vector<int>> map, std::unordered_set<int> hashValues, std::unordered_map<int, std::vector<int>> hashNeighbors);
-void updateParticles(std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY, std::vector<sf::CircleShape>& allCircles,std::vector<std::vector<float>>& forces, std::unordered_map<int,std::vector<int>> map, std::unordered_set<int> hashValues, std::unordered_map<int, std::vector<int>> hashNeighbors){
+void updateParticles(std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY, std::vector<sf::CircleShape>& allCircles,std::vector<std::vector<float>>& forces, std::unordered_map<int,std::vector<int>> map, std::unordered_set<int> hashValues, std::unordered_map<int, std::vector<int>> hashNeighbors, int initial, int last);
+void updateParticles(std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY, std::vector<sf::CircleShape>& allCircles,std::vector<std::vector<float>>& forces, std::unordered_map<int,std::vector<int>> map, std::unordered_set<int> hashValues, std::unordered_map<int, std::vector<int>> hashNeighbors, int initial, int last){
     
-    checkCorner(positionsX, positionsY, velocitiesX, velocitiesY);
     //updating velocities:
-    for(auto H : hashValues){
+    auto start = hashValues.begin();
+    std::advance(start, initial);
+    auto end = hashValues.begin();
+    std::advance(end, last);
+    for(auto H = start; H != end; ++H){
+        //int H = hashValues[i]; 
         std::vector<int> IDS;
-        for(auto HV : hashNeighbors[H]){
+        for(auto HV : hashNeighbors[*H]){
             if(hashValues.count(HV) == 0)continue;
             for(auto id : map[HV]){
                 IDS.push_back(id);
@@ -153,10 +162,8 @@ void updateParticles(std::vector<float>& positionsX,std::vector<float>& position
                 float rx = positionsX[id2] - positionsX[id1];   
                 float ry = positionsY[id2] - positionsY[id1];
                 float r = sqrt(rx*rx + ry*ry);
-                //std::cout<<r<<std::endl;
                 if(r > 0 && r < rMax){
                     float f = force(r/rMax,forces[id1 % number_of_colors][id2 % number_of_colors]);
-                //std::cout<<f<<std::endl;
                     totalForceX += rx/r * f;
                     totalForceY += ry/r * f;
                 }
@@ -168,34 +175,26 @@ void updateParticles(std::vector<float>& positionsX,std::vector<float>& position
             velocitiesX[id1] *= frictionFactor;
             velocitiesY[id1] *= frictionFactor;
 
-            //std::cout<<velocitiesX[i]<<std::endl;
-
             velocitiesX[id1] += totalForceX * dt;
             velocitiesY[id1] += totalForceY * dt;
 
-            //std::cout<<velocitiesX[i]<<std::endl;
-
             //updating positions:
-
-            //std::cout<<positionsX[i]<<std::endl;
 
             positionsX[id1] += velocitiesX[id1] * dt;
             positionsY[id1] += velocitiesY[id1] * dt;
-            //std::cout<<positionsX[i]<<std::endl;
-
-            allCircles[id1].setPosition(positionsX[id1], positionsY[id1]);
-
+            allCircles[id1].setRadius(particleSize*zoom*2);
+            allCircles[id1].setPosition((positionsX[id1] - xCam)*zoom, (positionsY[id1]-yCam)*zoom);
         } 
     }
 }
 
 
-void updateMap(const std::vector<float> positionsX,const std::vector<float> positionsY, std::unordered_map<int,std::vector<int>>& map, std::unordered_set<int>& hashValues);
-void updateMap(const std::vector<float> positionsX,const std::vector<float> positionsY, std::unordered_map<int,std::vector<int>>& map, std::unordered_set<int>& hashValues){
+void updateMap(const std::vector<float> positionsX,const std::vector<float> positionsY, std::unordered_map<int,std::vector<int>>& map, std::unordered_set<int>& hashValues, int initial, int last);
+void updateMap(const std::vector<float> positionsX,const std::vector<float> positionsY, std::unordered_map<int,std::vector<int>>& map, std::unordered_set<int>& hashValues, int initial, int last){
     float xSize = width/gridSize;
     //std::cout<<"-------------------------------------"<<std::endl;
     float ySize = height/gridSize;
-    for(int i = 0; i < number_of_particles; i++){
+    for(int i = initial; i < last; i++){
         if(positionsX[i] < 0 || positionsY[i] < 0)continue;
         int gridX = positionsX[i]/xSize;
         int gridY = positionsY[i]/ySize;
@@ -209,11 +208,35 @@ void updateMap(const std::vector<float> positionsX,const std::vector<float> posi
 
 void update(sf::RenderWindow &window,std::vector<std::vector<float>>& forces,std::vector<sf::Color>& allColors,std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY,std::vector<sf::CircleShape>& allCircles, const std::unordered_map<int, std::vector<int>> hashNeighbors);
 void update(sf::RenderWindow &window,std::vector<std::vector<float>>& forces,std::vector<sf::Color>& allColors,std::vector<float>& positionsX,std::vector<float>& positionsY,std::vector<float>& velocitiesX,std::vector<float>& velocitiesY,std::vector<sf::CircleShape>& allCircles, const std::unordered_map<int, std::vector<int>> hashNeighbors){
+    //this function will update all the informations 
     std::unordered_map<int, std::vector<int>> map; //this map contains all the particles inside an cell 
     std::unordered_set<int> hashValues; //this set will hold all the cells that have at least one particle on it; 
-    updateMap(positionsX, positionsY, map, hashValues);
+    updateMap(positionsX, positionsY, map, hashValues,0, number_of_particles); //this funtion will update all the positions of the particles on the grid 
+    //std::thread u1(updateMap,positionsX, positionsY, std::ref(map), std::ref(hashValues),0, number_of_particles/4);
+    //u1.join();
+    //std::thread u2(updateMap,positionsX, positionsY, std::ref(map), std::ref(hashValues),number_of_particles/4, number_of_particles/4*2);
+    //u2.join();
+    //std::thread u3(updateMap,positionsX, positionsY, std::ref(map), std::ref(hashValues),number_of_particles/4*2, number_of_particles/4*3);
+    //u3.join();
+    //std::thread u4(updateMap,positionsX, positionsY, std::ref(map), std::ref(hashValues),number_of_particles/4*3, number_of_particles/4*4);
+    //u4.join();
 
-    updateParticles(positionsX, positionsY, velocitiesX, velocitiesY, allCircles, forces, map, hashValues, hashNeighbors);
+
+    checkCorner(positionsX, positionsY, velocitiesX, velocitiesY);
+    int size = hashValues.size();
+    std::thread t1(updateParticles,std::ref(positionsX), std::ref(positionsY), std::ref(velocitiesX), std::ref(velocitiesY), std::ref(allCircles), std::ref(forces), map, hashValues, hashNeighbors,0,size/4);
+    std::thread t2(updateParticles,std::ref(positionsX), std::ref(positionsY), std::ref(velocitiesX), std::ref(velocitiesY), std::ref(allCircles), std::ref(forces), map, hashValues, hashNeighbors,size/4 + 1,size/4*2);
+    std::thread t3(updateParticles,std::ref(positionsX), std::ref(positionsY), std::ref(velocitiesX), std::ref(velocitiesY), std::ref(allCircles), std::ref(forces), map, hashValues, hashNeighbors,size/4 * 2 + 1,size/4*3);
+    std::thread t4(updateParticles,std::ref(positionsX), std::ref(positionsY), std::ref(velocitiesX), std::ref(velocitiesY), std::ref(allCircles), std::ref(forces), map, hashValues, hashNeighbors,size/4 * 3 + 1,size - 1);
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    
+    //std::thread t5(updateParticles,std::ref(positionsX), std::ref(positionsY), std::ref(velocitiesX), std::ref(velocitiesY), std::ref(allCircles), std::ref(forces), map, hashValues, hashNeighbors,0,size -1);
+    //t5.join();
+    //updateParticles(positionsX, positionsY, velocitiesX, velocitiesY, allCircles, forces, map, hashValues, hashNeighbors); //this function updates all the informations of the cells in hashValues
+    //std::cout<<0<<"-"<<size/4 * 1<<"-"<<size/4 * 2<<"-"<<size/4 * 3<<"-"<<size/4 * 4<<"-"<<std::endl;
 
     //drawing the particles:
     for(auto particle : allCircles){
@@ -256,6 +279,27 @@ int main(){
 
             if(event.type == sf::Event::KeyPressed){
                 
+                if(event.key.code == sf::Keyboard::W){
+                    yCam -= 50;
+                }else if(event.key.code == sf::Keyboard::S){
+                    yCam +=50;
+                }
+                if(event.key.code == sf::Keyboard::Z){
+                    zoom -= 0.1;
+                    std::cout<<zoom<<std::endl;
+                }else if(event.key.code == sf::Keyboard::X){
+                    zoom += 0.1;
+                    //xCam += desktop.width*0.9/2;
+                    //yCam += desktop.height*0.9/2;
+                    std::cout<<zoom<<std::endl;
+                }
+
+
+                if(event.key.code == sf::Keyboard::A){
+                    xCam -= 50;
+                }else if(event.key.code == sf::Keyboard::D){
+                    xCam +=50;
+                }
                 
                 if(event.key.code == sf::Keyboard::P){
                     forceFactor += 0.5;
@@ -286,7 +330,19 @@ int main(){
                     std::cout<<beta<<std::endl;
                 }
             }
+            
+            sf::Vector2i mouse = sf::Mouse::getPosition(window);
 
+            //std::cout<<mouse.x<<" ::: "<<mouse.y<<std::endl;
+            //std::cout<<xCam<<"  ::::  "<<yCam<<std::endl;
+            if(mouse.x < 10 && xCam > -20){xCam -= 10*0.5f;}else if(mouse.x > desktop.width - 10 && xCam + desktop.width < width  ){xCam += 10 * 0.5f;}
+            if(mouse.y < 10 && yCam > -20){yCam -= 10*0.5f;}else if(mouse.y > desktop.height -10 && yCam + desktop.height < height){yCam += 10 * 0.5f;}
+            
+            //if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+            //    if (event.mouseWheelScroll.delta > 0) {
+            //      zoom -= 0.1;
+            //    }else{zoom +=0.1;}
+            //}
         }
         sf::Time elapsedTime = clock.restart();
         float fps = calculateFPS(elapsedTime);
